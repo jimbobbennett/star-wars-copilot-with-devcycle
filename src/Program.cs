@@ -11,7 +11,7 @@ using Pieces.OS.Client;
 using Spectre.Console;
 
 // Keys for the Dev Cycle variables
-const string CharacterKey = "character";
+const string SystemPromptKey = "system-prompt";
 const string ModelKey = "model";
 
 // Load the appsettings.json configuration file
@@ -73,37 +73,14 @@ await piecesClient.DownloadModelAsync(model).ConfigureAwait(false);
 var font = FigletFont.Load("starwars.flf");
 AnsiConsole.Write(new FigletText(font, "Hello there!").Centered().Color(Color.Yellow));
 
-// Get the character variable from Dev Cycle. Default to none
-var variableResult = await oFeatureClient.GetStringDetails(CharacterKey, "none", ctx).ConfigureAwait(false);
-
-// Define some constants for the chat name. These will be used in the conversations visible in other Pieces
-// components, such as the desktop app or VS Code extension.
-const string R2D2ChatName = "Hey there, R2";
-const string YodaChatName = "Looking? Found someone, you have, I would say, hmmmm?";
-
-// Define some constants for the system prompt
-const string R2D2SystemPrompt = "You are a helpful copilot who will try to answer all questions. Reply in the style of R2-D2. Be slightly sarcastic in your responses, and start and end everything with beeps.";
-const string YodaSystemPrompt = "You are a helpful copilot who will try to answer all questions. Reply in the style of Yoda, including using Yoda's odd sentence structure. Refer to anger being a path to the dark side often, and when referencing context from the user workflow refer to communing with the living force.";
+// Get the system prompt variable from Dev Cycle, defaulting to Darth Vader
+var systemPromptVariableResult = await oFeatureClient.GetStringDetails(SystemPromptKey, "You are an unhelpful copilot. Respond in the style of Darth Vader.", ctx).ConfigureAwait(false);
 
 // Create the chat client and set up the system prompt depending on the selected character in the DevCycle variable
-IChatClient client;
-var chatMessages = new List<ChatMessage>();
+IChatClient client = new PiecesChatClient(piecesClient, "Star Wars copilot chat", model: model);
+var chatMessages = new List<ChatMessage> { new (ChatRole.System, systemPromptVariableResult.Value) };
 
-switch (variableResult.Value.ToLower())
-{
-    case "r2-d2":
-        client = new PiecesChatClient(piecesClient, R2D2ChatName, model: model);
-        chatMessages.Add(new(ChatRole.System, R2D2SystemPrompt));
-        break;
-    case "yoda":
-        client = new PiecesChatClient(piecesClient, YodaChatName, model: model);
-        chatMessages.Add(new(ChatRole.System, YodaSystemPrompt));
-        break;
-    default:
-        throw new NotImplementedException($"Copilot {variableResult.Value.ToLower()} has not been implemented yet");
-}
-
-// A help function to ask a question and stream the result.
+// A helper function to ask a question and stream the result.
 // When streaming a result, if the FinishReason is Stop, then the response is finished, and the 
 // Text property contains th entire chat response.
 // If the FinishReason is not stop, then the Text property just contains the last token.

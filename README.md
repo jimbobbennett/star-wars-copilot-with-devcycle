@@ -11,11 +11,9 @@ This is a C# app, using the [Pieces.Extensions.AI](https://www.nuget.org/package
 This app connects to DevCycle using the [DevCycle .NET SDK](https://www.nuget.org/packages/DevCycle.SDK.Server.Local) nuget package to determine 2 things:
 
 - What model to use
-- What Star Wars character to base the copilot on
+- What system prompt to use to define the Star Wars character in use.
 
-The model value is taken verbatim - so you can send any supported model name and the app will work. For the character, the copilot chat is configured to be either R2-D2 or Yoda - no other value is supported.
-
-The model is used to configure which underlying LLM Pieces will use. The character is used to set the name of the copilot chat (visible if you look at the conversation in another component of Pieces, such as the VS Code extension or desktop app), and set a system prompt to guide the copilot to answer like the selected character.
+The model value is taken verbatim - so you can send any supported model name and the app will work. This is used to select an LLM in the Pieces chat. Same with the system prompt - this is passed as is to each message sent to the LLM.
 
 ## Configuring the app
 
@@ -24,7 +22,7 @@ To configure the app, you need to do the following:
 1. Create a new DevCycle experiment
 1. Add 2 variables to the experiment:
     - `model` - with variations that match models supported by Pieces, for example `Claude 3.5 sonnet` and `Llama-3 8B`
-    - `character` - with variations of `r2-d2` and `yoda`
+    - `system-prompt` - with variations for different system prompts depending on your Star Wars character of choice. For example, `You are a helpful copilot who will try to answer all questions. Reply in the style of Yoda, including using Yoda's odd sentence structure. Refer to anger being a path to the dark side often, and when referencing context from the user workflow refer to communing with the living force.`
 1. Get a DevCycle server SDK key
 1. Copy the `appsettings.json.example` file in the `src` folder to `appsettings.json`, and set the value of `SDKKey` to your SDK key
 1. Build and run the app.
@@ -33,4 +31,4 @@ To configure the app, you need to do the following:
 
 To use the app, enter your question just like any other LLM powered chat tool, and you will get a response. Like all chat tools, you can ask follow up questions and the conversation will be based around the entire message history.
 
-To change the model or character, update the targetting rules in DevCycle, and restart the app.
+To change the model or system prompt, update the targeting rules in DevCycle, and restart the app.
